@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanna Car - Калькулятор стоимости</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Inter Tight', sans-serif;
+            background-color: #000;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+            text-align: center;
+        }
+        .logo {
+            max-width: 150px;
+            display: block;
+            margin: 20px auto;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: auto;
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .form-control, .btn-calculate {
+            margin-bottom: 15px;
+        }
+        .btn-calculate {
+            background-color: #ffffff;
+            color: #000000;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 10px;
+            width: 100%;
+            border: none;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <img src="/img/logo.png" alt="Логотип" class="logo">
+        <h1>Калькулятор стоимости</h1>
+        
+        <div class="form-container">
+            <select v-model="selectedCountry" class="form-control" @change="updateFormFields">
+                <option disabled value="">Выберите страну импорта</option>
+                <option value="Корея">Корея</option>
+                <option value="Германия">Германия</option>
+            </select>
+
+            <input v-if="selectedCountry === 'Корея'" v-model="priceWon" type="number" class="form-control" placeholder="Стоимость авто в вонах">
+            <input v-if="selectedCountry === 'Германия'" v-model="priceEuro" type="number" class="form-control" placeholder="Стоимость авто в евро">
+
+            <input v-model="carAge" type="number" class="form-control" placeholder="Возраст авто (в годах)">
+            <input v-model="engineVolume" type="number" class="form-control" placeholder="Объем двигателя (см³)">
+            
+            <button @click="calculatePrice" class="btn-calculate">Рассчитать</button>
+            
+            <div v-if="result" class="result">Стоимость в рублях: [[ result ]]</div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    selectedCountry: '',
+                    priceWon: '',
+                    priceEuro: '',
+                    carAge: '',
+                    engineVolume: '',
+                    result: null
+                };
+            },
+            methods: {
+                updateFormFields() {
+                    this.priceWon = '';
+                    this.priceEuro = '';
+                    this.carAge = '';
+                    this.engineVolume = '';
+                    this.result = null;
+                },
+                async calculatePrice() {
+                    if (!this.selectedCountry || !this.carAge || !this.engineVolume) {
+                        alert("Заполните все поля!");
+                        return;
+                    }
+                    if (this.selectedCountry === 'Корея' && !this.priceWon) {
+                        alert("Заполните стоимость авто в вонах!");
+                        return;
+                    }
+                    if (this.selectedCountry === 'Германия' && !this.priceEuro) {
+                        alert("Заполните стоимость авто в евро!");
+                        return;
+                    }
+                    try {
+                        const response = await fetch("https://17d1-90-156-228-124.ngrok-free.app/calculate", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                priceWon: this.priceWon,
+                                priceEuro: this.priceEuro,
+                                engineVolume: this.engineVolume,
+                                carAge: this.carAge,
+                                country: this.selectedCountry
+                            })
+                        });
+                        const data = await response.json();
+                        this.result = data.priceRub;
+                    } catch (error) {
+                        console.error("Ошибка запроса", error);
+                    }
+                }
+            },
+            delimiters: ['[[', ']]']
+        }).mount('#app');
+    </script>
+</body>
+</html>
