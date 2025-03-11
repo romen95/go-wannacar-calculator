@@ -19,63 +19,67 @@ import (
 )
 
 // Обработчик для API расчета стоимости
-func calculateHandler(w http.ResponseWriter, r *http.Request) {
-	// Разрешаем CORS (если запрос из браузера)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Разрешаем CORS (если запрос из браузера)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	// Обрабатываем OPTIONS-запрос для CORS
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	// Парсим входные данные
-	var requestData struct {
-		Country           string  `json:"country"`
-		TypeAuto          string  `json:"typeAuto"`
-		PriceWon          float64 `json:"priceWon"`
-		PriceEuro         float64 `json:"priceEuro"`
-		YearOfManufacture int     `json:"yearOfManufacture"`
-		EngineVolume      float64 `json:"engineVolume"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
-		log.Printf("Ошибка при декодировании JSON: %v\n", err)
-		http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
-		return
-	}
-
-	// Создаем клиент для работы с Google Sheets API
-	ctx := context.Background()
-	srv, err := sheets.NewService(ctx, option.WithCredentialsFile(internal.CredentialsFile))
-	if err != nil {
-		log.Printf("Ошибка при создании клиента Google Sheets: %v\n", err)
-		http.Error(w, fmt.Sprintf("Не удалось создать клиент: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	var response map[string]float64
-
-	switch requestData.Country {
-	case "Корея":
-		response, err = calculate.CalculateKoreaResult(requestData.TypeAuto, requestData.PriceWon, requestData.YearOfManufacture, requestData.EngineVolume, srv)
-		if err != nil {
-			log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
-			http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
+		// Обрабатываем OPTIONS-запрос для CORS
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
-	case "Германия":
-		response, err = calculate.CalculateGermanyResult(requestData.TypeAuto, requestData.PriceEuro, requestData.YearOfManufacture, requestData.EngineVolume, srv)
-		if err != nil {
-			log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
-			http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
+
+		// Парсим входные данные
+		var requestData struct {
+			Country           string  `json:"country"`
+			TypeAuto          string  `json:"typeAuto"`
+			PriceWon          float64 `json:"priceWon"`
+			PriceEuro         float64 `json:"priceEuro"`
+			YearOfManufacture int     `json:"yearOfManufacture"`
+			EngineVolume      float64 `json:"engineVolume"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+			log.Printf("Ошибка при декодировании JSON: %v\n", err)
+			http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
 			return
 		}
-	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+		// Создаем клиент для работы с Google Sheets API
+		ctx := context.Background()
+		srv, err := sheets.NewService(ctx, option.WithCredentialsFile(internal.CredentialsFile))
+		if err != nil {
+			log.Printf("Ошибка при создании клиента Google Sheets: %v\n", err)
+			http.Error(w, fmt.Sprintf("Не удалось создать клиент: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		var response map[string]float64
+
+		switch requestData.Country {
+		case "Корея":
+			response, err = calculate.CalculateKoreaResult(requestData.TypeAuto, requestData.PriceWon, requestData.YearOfManufacture, requestData.EngineVolume, srv)
+			if err != nil {
+				log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
+				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
+				return
+			}
+		case "Германия":
+			response, err = calculate.CalculateGermanyResult(requestData.TypeAuto, requestData.PriceEuro, requestData.YearOfManufacture, requestData.EngineVolume, srv)
+			if err != nil {
+				log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
+				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		h.SendResponse(h.ChatID, response)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}
 }
 
 func main() {
@@ -111,7 +115,7 @@ func main() {
 	})
 
 	// API для расчета стоимости
-	http.HandleFunc("/calculate", calculateHandler)
+	http.HandleFunc("/calculate", calculateHandler(handler))
 
 	// Запуск сервера
 	log.Println("Сервер запущен на порту 8080...")
