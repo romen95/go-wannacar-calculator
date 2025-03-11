@@ -13,25 +13,26 @@
             background-color: #000;
             color: #fff;
             padding: 20px;
+            padding-bottom: 300px; /* Отступ снизу для клавиатуры */
             margin: 0;
             text-align: center;
         }
         .logo {
-            max-width: 150px;
+            max-width: 60px;
             display: block;
             margin: 20px auto;
         }
-        .form-container {
+        .form-container, .result-container {
             max-width: 400px;
             margin: auto;
             background: #1a1a1a;
             padding: 20px;
             border-radius: 10px;
         }
-        .form-control, .btn-calculate {
+        .form-control, .btn-calculate, .btn-back {
             margin-bottom: 15px;
         }
-        .btn-calculate {
+        .btn-calculate, .btn-back {
             background-color: #ffffff;
             color: #000000;
             font-size: 18px;
@@ -45,6 +46,63 @@
             font-size: 20px;
             font-weight: 600;
         }
+        .details {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .details div {
+            margin-bottom: 10px;
+        }
+        .exchange-rates {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .exchange-rates div {
+            margin-bottom: 10px;
+        }
+        .loader {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .loader-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .loader-bar::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 100%;
+            background-color: #fff;
+            border-radius: 5px;
+            animation: fill 2s linear infinite;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        @keyframes fill {
+            0% {
+                width: 0;
+            }
+            50% {
+                width: 50%;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+        .loader-text {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -52,22 +110,78 @@
         <img src="/img/logo.png" alt="Логотип" class="logo">
         <h1>Калькулятор стоимости</h1>
         
-        <div class="form-container">
-            <select v-model="selectedCountry" class="form-control" @change="updateFormFields">
+        <!-- Форма -->
+        <div v-if="showForm" class="form-container">
+            <select v-model="selectedCountry" class="form-control" @change="updateValuteFormFields">
                 <option disabled value="">Выберите страну импорта</option>
                 <option value="Корея">Корея</option>
                 <option value="Германия">Германия</option>
             </select>
 
+            <select v-model="selectedTypeAuto" class="form-control" @change="updateEngineFormFields">
+                <option disabled value="">Выберите тип автомобиля</option>
+                <option value="Бензиновый/дизельный двигатель">Бензиновый/дизельный двигатель</option>
+                <option value="Электромобиль">Электромобиль</option>
+            </select>
+
             <input v-if="selectedCountry === 'Корея'" v-model="priceWon" type="number" class="form-control" placeholder="Стоимость авто в вонах">
             <input v-if="selectedCountry === 'Германия'" v-model="priceEuro" type="number" class="form-control" placeholder="Стоимость авто в евро">
 
-            <input v-model="carAge" type="number" class="form-control" placeholder="Возраст авто (в годах)">
-            <input v-model="engineVolume" type="number" class="form-control" placeholder="Объем двигателя (см³)">
+            <input v-model="yearOfManufacture" type="number" class="form-control" placeholder="Год выпуска">
+            
+            <input v-if="selectedTypeAuto === 'Бензиновый/дизельный двигатель'" v-model="engineVolume" type="number" class="form-control" placeholder="Объем двигателя (см³)">
             
             <button @click="calculatePrice" class="btn-calculate">Рассчитать</button>
-            
-            <div v-if="result" class="result">Стоимость в рублях: [[ result ]]</div>
+        </div>
+
+        <!-- Лоадер -->
+        <div v-if="isLoading" class="form-container">
+            <div class="loader">
+                <div class="loader-bar"></div>
+                <div class="loader-text">Расчет стоимости...</div>
+            </div>
+        </div>
+
+        <!-- Результат -->
+        <div v-if="showResult" class="result-container">
+            <div class="result">Итоговая стоимость:<br>[[ result ]] ₽</div>
+
+            <!-- Детали расчета Корея -->
+            <div v-if="selectedCountry === 'Корея'" v-if="details" class="details">
+                <div>Стоимость авто в Корее: [[ details.priceAutoRub ]] ₽</div>
+                <div>Таможенная ставка: [[ details.koreaCustomsСostPrice ]] ₽</div>
+                <div>Утильсбор: [[ details.koreaRecyclingCollection ]] ₽</div>
+                <div>Логистика из Кореи: [[ details.logisticKoreaPriceRub ]] ₽</div>
+                <div>Комиссия: [[ details.commission ]] ₽</div>
+                <div>Логистика до Москвы: [[ details.logisticMoscowPrice ]] ₽</div>
+                <div>Оформление документов: [[ details.documentsPrice ]] ₽</div>
+            </div>
+
+            <!-- Детали расчета Германия -->
+            <div v-if="selectedCountry === 'Германия'" v-if="details" class="details">
+                <div>Стоимость авто в Германии: [[ details.priceAutoRub ]] ₽</div>
+                <div>Наценка: [[ details.pricePercentRub ]] ₽</div>
+                <div>Таможенная ставка: [[ details.germanyCustomsСostPrice ]] ₽</div>
+                <div>Утильсбор: [[ details.germanyRecyclingCollection ]] ₽</div>
+                <div>Комиссия: [[ details.commission ]] ₽</div>
+                <div>Логистика до Москвы: [[ details.logisticMoscowPriceRub ]] ₽</div>
+                <div>Оформление документов: [[ details.documentsPrice ]] ₽</div>
+            </div>
+
+            <!-- Курсы валют -->
+            <div v-if="details" class="exchange-rates">
+                <div>Страна: [[ this.selectedCountry ]]</div>
+                <div>Тип: [[ this.selectedTypeAuto ]]</div>
+                <div>Год выпуска: [[ this.yearOfManufacture ]] г</div>
+                <div v-if="selectedTypeAuto === 'Бензиновый/дизельный двигатель'">Объем двигателя: [[ this.engineVolume ]] см³</div>
+                <div v-if="selectedCountry === 'Корея'">Стоимость в вонах: [[ this.priceWon ]] ₩</div>
+                <div v-if="selectedCountry === 'Германия'">Стоимость в евро: [[ this.priceEuro ]] €</div>
+                <div v-if="selectedCountry === 'Корея'">Курс вон к рублю: [[ details.exchangeRateWonToRub ]] ₽</div>
+                <div>Курс евро к рублю: [[ details.exchangeRateEuroToRub ]] ₽</div>
+            </div>
+
+            <!-- Кнопка "Назад" -->
+            <button @click="goBack" class="btn-back">Назад</button>
         </div>
     </div>
 
@@ -78,23 +192,36 @@
             data() {
                 return {
                     selectedCountry: '',
+                    selectedTypeAuto: '',
                     priceWon: '',
                     priceEuro: '',
-                    carAge: '',
+                    yearOfManufacture: '',
                     engineVolume: '',
-                    result: null
+                    result: null,
+                    details: null,
+                    isLoading: false, // Состояние загрузки
+                    showForm: true,   // Показывать форму
+                    showResult: false // Показывать результат
                 };
             },
             methods: {
-                updateFormFields() {
+                updateAllFormFields() {
                     this.priceWon = '';
                     this.priceEuro = '';
-                    this.carAge = '';
+                    this.yearOfManufacture = '';
                     this.engineVolume = '';
                     this.result = null;
+                    this.details = null;
+                },
+                updateValuteFormFields() {
+                    this.priceWon = '';
+                    this.priceEuro = '';
+                },
+                updateEngineFormFields() {
+                    this.engineVolume = '';
                 },
                 async calculatePrice() {
-                    if (!this.selectedCountry || !this.carAge || !this.engineVolume) {
+                    if (!this.selectedCountry || !this.selectedTypeAuto || !this.yearOfManufacture) {
                         alert("Заполните все поля!");
                         return;
                     }
@@ -106,26 +233,60 @@
                         alert("Заполните стоимость авто в евро!");
                         return;
                     }
+                    if (this.selectedTypeAuto === 'Бензиновый/дизельный двигатель' && !this.engineVolume) {
+                        alert("Заполните объем двигателя в см³!");
+                        return;
+                    }
+
+                    this.showForm = false; // Скрываем форму
+                    this.isLoading = true; // Показываем лоадер
+
                     try {
-                        const response = await fetch("https://17d1-90-156-228-124.ngrok-free.app/calculate", {
+                        const response = await fetch("https://39ad-90-156-228-124.ngrok-free.app/calculate", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                priceWon: this.priceWon,
-                                priceEuro: this.priceEuro,
-                                engineVolume: this.engineVolume,
-                                carAge: this.carAge,
-                                country: this.selectedCountry
+                                priceWon: parseFloat(this.priceWon),
+                                priceEuro: parseFloat(this.priceEuro),
+                                engineVolume: parseFloat(this.engineVolume),
+                                yearOfManufacture: parseFloat(this.yearOfManufacture),
+                                country: this.selectedCountry,
+                                typeAuto: this.selectedTypeAuto
                             })
                         });
                         const data = await response.json();
-                        this.result = data.priceRub;
+
+                        this.result = data.resultPrice; // Итоговая стоимость
+                        this.details = data; // Сохраняем все данные из map
                     } catch (error) {
                         console.error("Ошибка запроса", error);
+                    } finally {
+                        this.isLoading = false; // Скрываем лоадер
+                        this.showResult = true; // Показываем результат
                     }
+                },
+                goBack() {
+                    this.showForm = true; // Показываем форму
+                    this.showResult = false; // Скрываем результат
+                    this.updateAllFormFields(); // Сбрасываем поля формы
                 }
             },
-            delimiters: ['[[', ']]']
+            delimiters: ['[[', ']]'],
+            mounted() {
+                // Автоматическая прокрутка к активному полю ввода
+                document.querySelectorAll('.form-control').forEach(input => {
+                    input.addEventListener('focus', () => {
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                });
+
+                // Скрытие клавиатуры при касании вне поля ввода
+                document.addEventListener('touchstart', (event) => {
+                    if (!event.target.classList.contains('form-control')) {
+                        document.activeElement.blur();
+                    }
+                });
+            }
         }).mount('#app');
     </script>
 </body>
