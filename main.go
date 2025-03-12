@@ -11,6 +11,7 @@ import (
 
 	"go-wannacar-calculator/bot"
 	"go-wannacar-calculator/calculate"
+	"go-wannacar-calculator/database"
 	"go-wannacar-calculator/internal"
 
 	"github.com/joho/godotenv"
@@ -75,7 +76,7 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 			}
 		}
 
-		h.SendResponse(h.ChatID, response)
+		h.SendResponse(h.ChatID, response, requestData.Country, requestData.TypeAuto, requestData.PriceWon, requestData.PriceEuro, requestData.EngineVolume, requestData.YearOfManufacture)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
@@ -83,12 +84,19 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 }
 
 func main() {
+	// Подключение к базе данных
+	db, err := database.ConnectDB()
+	if err != nil {
+		log.Fatalf("Ошибка подключения к базе данных: %v", err)
+	}
+	defer db.Close()
+
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Ошибка загрузки файла .env")
 	}
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
-	handler := bot.NewBotHandler(botToken)
+	handler := bot.NewBotHandler(db, botToken)
 
 	go func() {
 		log.Println("Запуск Telegram-бота...")

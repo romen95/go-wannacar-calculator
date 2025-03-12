@@ -240,37 +240,37 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 		return nil, err
 	}
 
-	priceAutoRub := priceWon * exchangeRateWonToRub
-	result["priceAutoRub"] = math.Ceil(priceAutoRub)
+	koreaPriceAutoRub := priceWon * exchangeRateWonToRub
+	result["koreaPriceAutoRub"] = math.Ceil(koreaPriceAutoRub)
 
 	// Рассчитываем стоимость логистики из Кореи в рублях
-	logisticKoreaPriceRub := logisticKoreaPrice * exchangeRateWonToRub
-	result["logisticKoreaPriceRub"] = math.Ceil(logisticKoreaPriceRub)
+	koreaLogisticPriceRub := logisticKoreaPrice * exchangeRateWonToRub
+	result["koreaLogisticPriceRub"] = math.Ceil(koreaLogisticPriceRub)
 
 	// Получаем комиссию
-	commission, err := internal.GetValueFromSheet(srv, "Корея", "C3")
+	koreaCommission, err := internal.GetValueFromSheet(srv, "Корея", "C3")
 	if err != nil {
 		return nil, err
 	}
-	result["commission"] = commission
+	result["koreaCommission"] = koreaCommission
 
 	// Получаем стоимость логистики по Москве
-	logisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Корея", "D3")
+	koreaLogisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Корея", "D3")
 	if err != nil {
 		return nil, err
 	}
-	result["logisticMoscowPrice"] = logisticMoscowPrice
+	result["koreaLogisticMoscowPrice"] = koreaLogisticMoscowPrice
 
 	// Получаем стоимость оформления документов
-	documentsPrice, err := internal.GetValueFromSheet(srv, "Корея", "E3")
+	koreaDocumentsPrice, err := internal.GetValueFromSheet(srv, "Корея", "E3")
 	if err != nil {
 		return nil, err
 	}
-	result["documentsPrice"] = documentsPrice
+	result["koreaDocumentsPrice"] = koreaDocumentsPrice
 
 	// Рассчитываем итоговую стоимость
-	resultPrice := math.Ceil(priceAutoRub) + math.Ceil(koreaCustomsСostPrice) + math.Ceil(koreaRecyclingCollection) + math.Ceil(logisticKoreaPriceRub) + commission + logisticMoscowPrice + documentsPrice
-	result["resultPrice"] = resultPrice
+	koreaResultPrice := math.Ceil(koreaCustomsСostPrice) + math.Ceil(koreaRecyclingCollection) + math.Ceil(koreaPriceAutoRub) + math.Ceil(koreaLogisticPriceRub) + koreaCommission + koreaLogisticMoscowPrice + koreaDocumentsPrice
+	result["koreaResultPrice"] = koreaResultPrice
 
 	// Возвращаем map с результатами
 	return result, nil

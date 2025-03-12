@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"go-wannacar-calculator/database"
 	"log"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 )
 
 // NewBotHandler - создаёт нового обработчика бота
-func NewBotHandler(botToken string) *BotHandler {
+func NewBotHandler(database *database.DB, botToken string) *BotHandler {
 	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		log.Fatalf("Ошибка создания бота: %v", err)
@@ -20,6 +21,7 @@ func NewBotHandler(botToken string) *BotHandler {
 
 	handler := &BotHandler{
 		Bot: bot,
+		DB:  database,
 	}
 
 	return handler

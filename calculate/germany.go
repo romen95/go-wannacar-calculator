@@ -226,38 +226,38 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 		return nil, err
 	}
 
-	pricePercentRub := priceEuro * (percent / 100) * exchangeRateEuroToRub
-	result["pricePercentRub"] = math.Ceil(pricePercentRub)
+	germanyPricePercentRub := priceEuro * (percent / 100) * exchangeRateEuroToRub
+	result["germanyPricePercentRub"] = math.Ceil(germanyPricePercentRub)
 
-	priceAutoRub := priceEuro * exchangeRateEuroToRub
-	result["priceAutoRub"] = math.Ceil(priceAutoRub)
+	germanyPriceAutoRub := priceEuro * exchangeRateEuroToRub
+	result["germanyPriceAutoRub"] = math.Ceil(germanyPriceAutoRub)
 
 	// Получаем комиссию
-	commission, err := internal.GetValueFromSheet(srv, "Германия", "C3")
+	germanyCommission, err := internal.GetValueFromSheet(srv, "Германия", "C3")
 	if err != nil {
 		return nil, err
 	}
-	result["commission"] = commission
+	result["germanyCommission"] = germanyCommission
 
 	// Получаем стоимость логистики по Москве
-	logisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Германия", "B2")
+	germanyLogisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Германия", "B2")
 	if err != nil {
 		return nil, err
 	}
 
-	logisticMoscowPriceRub := logisticMoscowPrice * exchangeRateEuroToRub
-	result["logisticMoscowPriceRub"] = math.Ceil(logisticMoscowPriceRub)
+	germanyLogisticMoscowPriceRub := germanyLogisticMoscowPrice * exchangeRateEuroToRub
+	result["germanyLogisticMoscowPriceRub"] = math.Ceil(germanyLogisticMoscowPriceRub)
 
 	// Получаем стоимость оформления документов
-	documentsPrice, err := internal.GetValueFromSheet(srv, "Германия", "D3")
+	germanyDocumentsPrice, err := internal.GetValueFromSheet(srv, "Германия", "D3")
 	if err != nil {
 		return nil, err
 	}
-	result["documentsPrice"] = documentsPrice
+	result["germanyDocumentsPrice"] = germanyDocumentsPrice
 
 	// Рассчитываем итоговую стоимость
-	resultPrice := math.Ceil(priceAutoRub) + math.Ceil(pricePercentRub) + math.Ceil(germanyCustomsСostPrice) + math.Ceil(germanyRecyclingCollection) + math.Ceil(logisticMoscowPriceRub) + commission + documentsPrice
-	result["resultPrice"] = resultPrice
+	germanyResultPrice := math.Ceil(germanyCustomsСostPrice) + math.Ceil(germanyRecyclingCollection) + math.Ceil(germanyPricePercentRub) + math.Ceil(germanyPriceAutoRub) + germanyCommission + math.Ceil(germanyLogisticMoscowPriceRub) + germanyDocumentsPrice
+	result["germanyResultPrice"] = germanyResultPrice
 
 	// Возвращаем map с результатами
 	return result, nil

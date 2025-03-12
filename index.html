@@ -144,28 +144,29 @@
 
         <!-- Результат -->
         <div v-if="showResult" class="result-container">
-            <div class="result">Итоговая стоимость:<br>[[ result ]] ₽</div>
+            <div v-if="selectedCountry === 'Корея'" class="result">Итоговая стоимость:<br>[[ koreaResult ]] ₽</div>
+            <div v-if="selectedCountry === 'Германия'" class="result">Итоговая стоимость:<br>[[ germanyResult ]] ₽</div>
 
             <!-- Детали расчета Корея -->
             <div v-if="selectedCountry === 'Корея'" v-if="details" class="details">
-                <div>Стоимость авто в Корее: [[ details.priceAutoRub ]] ₽</div>
+                <div>Стоимость авто в Корее: [[ details.koreaPriceAutoRub ]] ₽</div>
                 <div>Таможенная ставка: [[ details.koreaCustomsСostPrice ]] ₽</div>
                 <div>Утильсбор: [[ details.koreaRecyclingCollection ]] ₽</div>
-                <div>Логистика из Кореи: [[ details.logisticKoreaPriceRub ]] ₽</div>
-                <div>Комиссия: [[ details.commission ]] ₽</div>
-                <div>Логистика до Москвы: [[ details.logisticMoscowPrice ]] ₽</div>
-                <div>Оформление документов: [[ details.documentsPrice ]] ₽</div>
+                <div>Логистика из Кореи: [[ details.koreaLogisticPriceRub ]] ₽</div>
+                <div>Комиссия: [[ details.koreaCommission ]] ₽</div>
+                <div>Логистика до Москвы: [[ details.koreaLogisticMoscowPrice ]] ₽</div>
+                <div>Оформление документов: [[ details.koreaDocumentsPrice ]] ₽</div>
             </div>
 
             <!-- Детали расчета Германия -->
             <div v-if="selectedCountry === 'Германия'" v-if="details" class="details">
-                <div>Стоимость авто в Германии: [[ details.priceAutoRub ]] ₽</div>
-                <div>Наценка: [[ details.pricePercentRub ]] ₽</div>
+                <div>Стоимость авто в Германии: [[ details.germanyPriceAutoRub ]] ₽</div>
+                <div>Наценка: [[ details.germanyPricePercentRub ]] ₽</div>
                 <div>Таможенная ставка: [[ details.germanyCustomsСostPrice ]] ₽</div>
                 <div>Утильсбор: [[ details.germanyRecyclingCollection ]] ₽</div>
-                <div>Комиссия: [[ details.commission ]] ₽</div>
-                <div>Логистика до Москвы: [[ details.logisticMoscowPriceRub ]] ₽</div>
-                <div>Оформление документов: [[ details.documentsPrice ]] ₽</div>
+                <div>Комиссия: [[ details.germanyCommission ]] ₽</div>
+                <div>Логистика до Москвы: [[ details.germanyLogisticMoscowPriceRub ]] ₽</div>
+                <div>Оформление документов: [[ details.germanyDocumentsPrice ]] ₽</div>
             </div>
 
             <!-- Курсы валют -->
@@ -256,7 +257,8 @@
                         });
                         const data = await response.json();
 
-                        this.result = data.resultPrice; // Итоговая стоимость
+                        this.koreaResult = data.koreaResultPrice; // Итоговая стоимость Корея
+                        this.germanyResult = data.germanyResultPrice; // Итоговая стоимость Германия
                         this.details = data; // Сохраняем все данные из map
                     } catch (error) {
                         console.error("Ошибка запроса", error);
