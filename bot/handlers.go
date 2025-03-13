@@ -106,8 +106,13 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 		"exchangeRateEuroToRub",
 	}
 
+	user := h.DB.GetUserByID(chatID)
+	calculationCount := user.CalculateCount
+
 	// Формируем текстовое сообщение
 	var messageText string
+
+	messageText += fmt.Sprintf("Расчет стоимости №%d", calculationCount)
 
 	// Добавляем разделитель
 	messageText += "\n"
