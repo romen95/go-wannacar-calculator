@@ -223,7 +223,7 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	}
 	result["koreaCustomsСostPrice"] = math.Ceil(koreaCustomsСostPrice)
 
-	result["exchangeRateWonToRub"] = exchangeRateWonToRub
+	result["exchangeRateWonToRub"] = exchangeRateWonToRub * 1000
 	result["exchangeRateEuroToRub"] = exchangeRateEuroToRub
 
 	// Рассчитываем стоимость утильсбора

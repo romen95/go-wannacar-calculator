@@ -9,9 +9,8 @@ import (
 )
 
 type BotHandler struct {
-	Bot    *tgbotapi.BotAPI
-	DB     *database.DB
-	ChatID int64
+	Bot *tgbotapi.BotAPI
+	DB  *database.DB
 }
 
 func (h *BotHandler) HandleUpdate(update tgbotapi.Update) {
@@ -45,16 +44,36 @@ func (h *BotHandler) HandleStart(message *tgbotapi.Message) {
 			return
 		}
 	}
-	h.ChatID = message.Chat.ID
-	text := "Здарова"
+	text := "Привет, я твой личный помощник в покупке автомобиля!\nНажми на кнопку ниже, чтобы перейти к расчету стоимости автомобиля👇🏻"
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, text)
+	miniAppURL := "t.me/wanna_car_calculator_bot/calculator" // Замените на ваш deep link
+
+	// Создаем inline-кнопку
+	btn := tgbotapi.NewInlineKeyboardButtonURL("Открыть мини-приложение", miniAppURL)
+	keyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(btn))
+
+	// Создаем сообщение с кнопкой
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ReplyMarkup = keyboard
+
 	if _, err := h.Bot.Send(msg); err != nil {
 		log.Printf("Ошибка отправки сообщения: %v", err)
 	}
 }
 
 func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, country, typeAuto string, priceWon, priceEuro, engineVolume float64, yearOfManufacture int) {
+	user := h.DB.GetUserByID(chatID)
+	if user == nil {
+		err := h.DB.CreateUser(chatID)
+		if err != nil {
+			msg := tgbotapi.NewMessage(chatID, "Произошла ошибка при создании пользователя.")
+			if _, err := h.Bot.Send(msg); err != nil {
+				log.Printf("Ошибка отправки сообщения: %v", err)
+			}
+			return
+		}
+	}
+
 	// Проверяем, есть ли данные в response
 	if len(response) == 0 {
 		msg := tgbotapi.NewMessage(chatID, "Нет данных для отображения.")
@@ -106,11 +125,10 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 		"exchangeRateEuroToRub",
 	}
 
-	user := h.DB.GetUserByID(chatID)
-	calculationCount := user.CalculateCount
-
 	// Формируем текстовое сообщение
 	var messageText string
+
+	calculationCount := user.CalculateCount
 
 	messageText += fmt.Sprintf("Расчет стоимости №%d", calculationCount)
 

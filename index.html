@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: 'Inter Tight', sans-serif;
@@ -161,7 +162,7 @@
             <!-- Детали расчета Германия -->
             <div v-if="selectedCountry === 'Германия'" v-if="details" class="details">
                 <div>Стоимость авто в Германии: [[ details.germanyPriceAutoRub ]] ₽</div>
-                <div>Наценка: [[ details.germanyPricePercentRub ]] ₽</div>
+                <div>Услуга выкупа: [[ details.germanyPricePercentRub ]] ₽</div>
                 <div>Таможенная ставка: [[ details.germanyCustomsСostPrice ]] ₽</div>
                 <div>Утильсбор: [[ details.germanyRecyclingCollection ]] ₽</div>
                 <div>Комиссия: [[ details.germanyCommission ]] ₽</div>
@@ -200,9 +201,10 @@
                     engineVolume: '',
                     result: null,
                     details: null,
-                    isLoading: false, // Состояние загрузки
-                    showForm: true,   // Показывать форму
-                    showResult: false // Показывать результат
+                    isLoading: false,
+                    showForm: true,
+                    showResult: false,
+                    chatID: null
                 };
             },
             methods: {
@@ -243,10 +245,13 @@
                     this.isLoading = true; // Показываем лоадер
 
                     try {
-                        const response = await fetch("https://2f29-90-156-228-124.ngrok-free.app/calculate", {
+                        this.chatID = Telegram.WebApp.initDataUnsafe.user?.id;
+
+                        const response = await fetch("https://01dd-90-156-228-124.ngrok-free.app/calculate", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
+                                chatID: this.chatID,
                                 priceWon: parseFloat(this.priceWon),
                                 priceEuro: parseFloat(this.priceEuro),
                                 engineVolume: parseFloat(this.engineVolume),
@@ -275,6 +280,10 @@
             },
             delimiters: ['[[', ']]'],
             mounted() {
+                // Инициализация Telegram WebApp
+                const tg = window.Telegram.WebApp;
+                tg.expand(); // Развернуть мини-приложение на весь экран
+                tg.ready();  // Готово к использованию
                 // Автоматическая прокрутка к активному полю ввода
                 document.querySelectorAll('.form-control').forEach(input => {
                     input.addEventListener('focus', () => {
