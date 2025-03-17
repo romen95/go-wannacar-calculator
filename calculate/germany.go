@@ -36,8 +36,6 @@ func calculateGermanyRecyclingCollection(typeAuto string, carAge int, engineVolu
 				return 0, fmt.Errorf("не удалось найти подходящую ставку для объема %.2f см³", engineVolume)
 			}
 
-			log.Printf("Найден утильсбор: %.2f ₽\n", rate)
-
 			recyclingCollectionPrice = rate
 			log.Printf("Утильсбор рассчитан от объема: %.2f ₽\n", recyclingCollectionPrice)
 		} else {
@@ -58,8 +56,6 @@ func calculateGermanyRecyclingCollection(typeAuto string, carAge int, engineVolu
 			if rate == 0 {
 				return 0, fmt.Errorf("не удалось найти подходящую ставку для объема %.2f см³", engineVolume)
 			}
-
-			log.Printf("Найден утильсбор: %.2f ₽\n", rate)
 
 			recyclingCollectionPrice = rate
 			log.Printf("Утильсбор рассчитан от объема: %.2f ₽\n", recyclingCollectionPrice)
@@ -123,8 +119,6 @@ func calculateGermanyCustomsСostPrice(typeAuto string, priceEuro float64, carAg
 				return 0, 0, fmt.Errorf("не удалось найти подходящую ставку для стоимости %.2f евро", priceEuro)
 			}
 
-			log.Printf("Найдена таможенная ставка: %.2f%%\n", rate)
-
 			customsСostPrice = priceEuro * exchangeRateEuroToRub * (rate / 100)
 			log.Printf("Таможенная ставка рассчитанная от стоимости авто: %.2f ₽\n", customsСostPrice)
 		}
@@ -148,8 +142,6 @@ func calculateGermanyCustomsСostPrice(typeAuto string, priceEuro float64, carAg
 				return 0, 0, fmt.Errorf("не удалось найти подходящую ставку для стоимости %.2f евро", priceEuro)
 			}
 
-			log.Printf("Найдена таможенная ставка: %.2f € за 1 см³\n", rate)
-
 			customsСostPrice = engineVolume * rate * exchangeRateEuroToRub
 			log.Printf("Таможенная ставка рассчитанная по см³: %.2f\n", customsСostPrice)
 		}
@@ -172,8 +164,6 @@ func calculateGermanyCustomsСostPrice(typeAuto string, priceEuro float64, carAg
 			if rate == 0 {
 				return 0, 0, fmt.Errorf("не удалось найти подходящую ставку для стоимости %.2f евро", priceEuro)
 			}
-
-			log.Printf("Найдена таможенная ставка: %.2f € за 1 см³\n", rate)
 
 			customsСostPrice = engineVolume * rate * exchangeRateEuroToRub
 			log.Printf("Таможенная ставка рассчитанная по см³: %.2f\n", customsСostPrice)

@@ -44,7 +44,7 @@ func (h *BotHandler) HandleStart(message *tgbotapi.Message) {
 			return
 		}
 	}
-	text := "Привет, я твой личный помощник в покупке автомобиля!\nНажми на кнопку ниже, чтобы перейти к расчету стоимости автомобиля👇🏻"
+	text := "Привет, я твой личный помощник в покупке автомобиля!\nНажми на кнопку ниже, чтобы открыть калькулятор стоимости👇🏻"
 
 	miniAppURL := "t.me/wanna_car_calculator_bot/calculator" // Замените на ваш deep link
 
@@ -131,6 +131,7 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	calculationCount := user.CalculateCount
 
 	messageText += fmt.Sprintf("Расчет стоимости №%d", calculationCount)
+	log.Printf("Расчет стоимости №%d", calculationCount)
 
 	// Добавляем разделитель
 	messageText += "\n"
