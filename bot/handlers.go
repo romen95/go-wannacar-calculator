@@ -44,9 +44,9 @@ func (h *BotHandler) HandleStart(message *tgbotapi.Message) {
 			return
 		}
 	}
-	text := "Привет, я твой личный помощник в покупке автомобиля!\nНажми на кнопку ниже, чтобы открыть калькулятор стоимости👇🏻"
+	text := "Привет, я твой личный помощник в покупке автомобиля!\nНажми на кнопку ниже, чтобы открыть приложение👇🏻"
 
-	miniAppURL := "t.me/wanna_car_calculator_bot/calculator" // Замените на ваш deep link
+	miniAppURL := "t.me/wanna_car_bot/app"
 
 	// Создаем inline-кнопку
 	btn := tgbotapi.NewInlineKeyboardButtonURL("Открыть мини-приложение", miniAppURL)

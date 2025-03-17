@@ -7,7 +7,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: '1'
           memory: 2G
     container_name: go-wannacar-calculator
     restart: unless-stopped
