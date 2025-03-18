@@ -104,10 +104,35 @@
             font-size: 16px;
             font-weight: 500;
         }
+        /* Стили для кнопки "Связаться с менеджером" */
+        .manager-button {
+            position: fixed;
+            width: 300px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffffff;
+            color: #000000;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+        }
+        .manager-button:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
     <div id="app">
+        <!-- Кнопка "Связаться с менеджером" -->
+        <a href="https://t.me/Wanna_car" class="manager-button" target="_blank">
+            Связаться с менеджером
+        </a>
+
         <img src="/img/logo.png" alt="Логотип" class="logo">
         <h1>Калькулятор стоимости</h1>
         
@@ -162,7 +187,7 @@
             <!-- Детали расчета Германия -->
             <div v-if="selectedCountry === 'Германия'" v-if="details" class="details">
                 <div>Стоимость авто в Германии: [[ details.germanyPriceAutoRub ]] ₽</div>
-                <div>Услуга выкупа: [[ details.germanyPricePercentRub ]] ₽</div>
+                <div>Услуги брокера в Германии: [[ details.germanyPricePercentRub ]] ₽</div>
                 <div>Таможенная ставка: [[ details.germanyCustomsСostPrice ]] ₽</div>
                 <div>Утильсбор: [[ details.germanyRecyclingCollection ]] ₽</div>
                 <div>Комиссия: [[ details.germanyCommission ]] ₽</div>
@@ -178,7 +203,7 @@
                 <div v-if="selectedTypeAuto === 'Бензиновый/дизельный двигатель'">Объем двигателя: [[ this.engineVolume ]] см³</div>
                 <div v-if="selectedCountry === 'Корея'">Стоимость в вонах: [[ this.priceWon ]] ₩</div>
                 <div v-if="selectedCountry === 'Германия'">Стоимость в евро: [[ this.priceEuro ]] €</div>
-                <div v-if="selectedCountry === 'Корея'">Курс вон к рублю: [[ details.exchangeRateWonToRub ]] ₽</div>
+                <div v-if="selectedCountry === 'Корея'">Курс вон к рублю за 1000 единиц: [[ details.exchangeRateWonToRub ]] ₽</div>
                 <div>Курс евро к рублю: [[ details.exchangeRateEuroToRub ]] ₽</div>
             </div>
 

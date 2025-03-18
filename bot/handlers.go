@@ -87,7 +87,7 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	fieldNames := map[string]string{
 		"koreaCustomsСostPrice":         "Таможенная стоимость (Корея)",
 		"germanyCustomsСostPrice":       "Таможенная стоимость (Германия)",
-		"exchangeRateWonToRub":          "Курс вон к рублю",
+		"exchangeRateWonToRub":          "Курс вон к рублю за 1000 единиц",
 		"exchangeRateEuroToRub":         "Курс евро к рублю",
 		"koreaRecyclingCollection":      "Утильсбор (Корея)",
 		"germanyRecyclingCollection":    "Утильсбор (Германия)",
@@ -102,6 +102,7 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 		"germanyDocumentsPrice":         "Оформление документов (Германия)",
 		"koreaResultPrice":              "Итоговая стоимость (Корея)",
 		"germanyResultPrice":            "Итоговая стоимость (Германия)",
+		"germanyPricePercentRub":        "Услуги брокера (Германии)",
 	}
 
 	// Срез с ключами в нужном порядке
@@ -110,6 +111,7 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 		"germanyResultPrice",
 		"koreaPriceAutoRub",
 		"germanyPriceAutoRub",
+		"germanyPricePercentRub",
 		"koreaCustomsСostPrice",
 		"germanyCustomsСostPrice",
 		"koreaRecyclingCollection",

@@ -19,16 +19,6 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
-var requestData struct {
-	Country           string  `json:"country"`
-	TypeAuto          string  `json:"typeAuto"`
-	PriceWon          float64 `json:"priceWon"`
-	PriceEuro         float64 `json:"priceEuro"`
-	YearOfManufacture int     `json:"yearOfManufacture"`
-	EngineVolume      float64 `json:"engineVolume"`
-	ChatID            int64   `json:"chatID"`
-}
-
 // Обработчик для API расчета стоимости
 func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +31,16 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
+		}
+
+		var requestData struct {
+			Country           string  `json:"country"`
+			TypeAuto          string  `json:"typeAuto"`
+			PriceWon          float64 `json:"priceWon"`
+			PriceEuro         float64 `json:"priceEuro"`
+			YearOfManufacture int     `json:"yearOfManufacture"`
+			EngineVolume      float64 `json:"engineVolume"`
+			ChatID            int64   `json:"chatID"`
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
@@ -76,9 +76,7 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 				return
 			}
 		}
-
-		h.SendResponse(requestData.ChatID, response, requestData.Country, requestData.TypeAuto, requestData.PriceWon, requestData.PriceEuro, requestData.EngineVolume, requestData.YearOfManufacture)
-
+		go h.SendResponse(requestData.ChatID, response, requestData.Country, requestData.TypeAuto, requestData.PriceWon, requestData.PriceEuro, requestData.EngineVolume, requestData.YearOfManufacture)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}
