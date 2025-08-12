@@ -182,7 +182,7 @@ func calculateGermanyCustomsСostPrice(typeAuto string, priceEuro float64, carAg
 	return customsСostPrice, exchangeRateEuroToRub, nil
 }
 
-func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufacture int, engineVolume float64, srv *sheets.Service) (map[string]float64, error) {
+func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufacture int, engineVolume float64, logisticsDestination float64, srv *sheets.Service) (map[string]float64, error) {
 	// Инициализируем map для хранения результатов
 	result := make(map[string]float64)
 
@@ -200,7 +200,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 	}
 	result["germanyCustomsСostPrice"] = math.Ceil(germanyCustomsСostPrice)
 
-	result["exchangeRateEuroToRub"] = exchangeRateEuroToRub
+	result["exchangeRateEuroToRub"] = math.Round(exchangeRateEuroToRub*100) / 100
 
 	// Рассчитываем стоимость утильсбора
 	germanyRecyclingCollection, err := calculateGermanyRecyclingCollection(typeAuto, carAge, engineVolume, srv)
@@ -229,7 +229,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 	}
 	result["germanyCommission"] = germanyCommission
 
-	// Получаем стоимость логистики по Москве
+	// Получаем стоимость логистики до СПБ
 	germanyLogisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Германия", "B2")
 	if err != nil {
 		return nil, err
@@ -237,6 +237,8 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 
 	germanyLogisticMoscowPriceRub := germanyLogisticMoscowPrice * exchangeRateEuroToRub
 	result["germanyLogisticMoscowPriceRub"] = math.Ceil(germanyLogisticMoscowPriceRub)
+
+	result["germanyLogisticsDestination"] = math.Ceil(logisticsDestination)
 
 	// Получаем стоимость оформления документов
 	germanyDocumentsPrice, err := internal.GetValueFromSheet(srv, "Германия", "D3")
@@ -246,7 +248,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 	result["germanyDocumentsPrice"] = germanyDocumentsPrice
 
 	// Рассчитываем итоговую стоимость
-	germanyResultPrice := math.Ceil(germanyCustomsСostPrice) + math.Ceil(germanyRecyclingCollection) + math.Ceil(germanyPricePercentRub) + math.Ceil(germanyPriceAutoRub) + germanyCommission + math.Ceil(germanyLogisticMoscowPriceRub) + germanyDocumentsPrice
+	germanyResultPrice := math.Ceil(germanyCustomsСostPrice) + math.Ceil(germanyRecyclingCollection) + math.Ceil(germanyPricePercentRub) + math.Ceil(germanyPriceAutoRub) + germanyCommission + math.Ceil(germanyLogisticMoscowPriceRub) + math.Ceil(logisticsDestination) + germanyDocumentsPrice
 	result["germanyResultPrice"] = germanyResultPrice
 
 	// Возвращаем map с результатами

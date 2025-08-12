@@ -34,13 +34,14 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 		}
 
 		var requestData struct {
-			Country           string  `json:"country"`
-			TypeAuto          string  `json:"typeAuto"`
-			PriceWon          float64 `json:"priceWon"`
-			PriceEuro         float64 `json:"priceEuro"`
-			YearOfManufacture int     `json:"yearOfManufacture"`
-			EngineVolume      float64 `json:"engineVolume"`
-			ChatID            int64   `json:"chatID"`
+			Country              string  `json:"country"`
+			TypeAuto             string  `json:"typeAuto"`
+			PriceWon             float64 `json:"priceWon"`
+			PriceEuro            float64 `json:"priceEuro"`
+			YearOfManufacture    int     `json:"yearOfManufacture"`
+			EngineVolume         float64 `json:"engineVolume"`
+			LogisticsDestination float64 `json:"logisticsDestination"`
+			ChatID               int64   `json:"chatID"`
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
@@ -62,14 +63,14 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 
 		switch requestData.Country {
 		case "Корея":
-			response, err = calculate.CalculateKoreaResult(requestData.TypeAuto, requestData.PriceWon, requestData.YearOfManufacture, requestData.EngineVolume, srv)
+			response, err = calculate.CalculateKoreaResult(requestData.TypeAuto, requestData.PriceWon, requestData.YearOfManufacture, requestData.EngineVolume, requestData.LogisticsDestination, srv)
 			if err != nil {
 				log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
 				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
 				return
 			}
 		case "Германия":
-			response, err = calculate.CalculateGermanyResult(requestData.TypeAuto, requestData.PriceEuro, requestData.YearOfManufacture, requestData.EngineVolume, srv)
+			response, err = calculate.CalculateGermanyResult(requestData.TypeAuto, requestData.PriceEuro, requestData.YearOfManufacture, requestData.EngineVolume, requestData.LogisticsDestination, srv)
 			if err != nil {
 				log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
 				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)

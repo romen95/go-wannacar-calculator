@@ -11,6 +11,11 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
+func RoundUpTo10000(value float64) float64 {
+	step := 10000.0
+	return math.Ceil(value/step) * step
+}
+
 // Функция для расчета утильсбора
 func calculateKoreaRecyclingCollection(typeAuto string, carAge int, engineVolume float64, srv *sheets.Service) (float64, error) {
 	var recyclingCollectionPrice float64
@@ -195,7 +200,7 @@ func calculateKoreaCustomsСostPrice(typeAuto string, priceWon float64, carAge i
 	return customsСostPrice, exchangeRateWonToRub, exchangeRateEuroToRub, nil
 }
 
-func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture int, engineVolume float64, srv *sheets.Service) (map[string]float64, error) {
+func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture int, engineVolume float64, logisticsDestination float64, srv *sheets.Service) (map[string]float64, error) {
 	// Инициализируем map для хранения результатов
 	result := make(map[string]float64)
 
@@ -213,8 +218,8 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	}
 	result["koreaCustomsСostPrice"] = math.Ceil(koreaCustomsСostPrice)
 
-	result["exchangeRateWonToRub"] = exchangeRateWonToRub * 1000
-	result["exchangeRateEuroToRub"] = exchangeRateEuroToRub
+	result["exchangeRateWonToRub"] = math.Round(exchangeRateWonToRub*1000*100) / 100
+	result["exchangeRateEuroToRub"] = math.Round(exchangeRateEuroToRub*100) / 100
 
 	// Рассчитываем стоимость утильсбора
 	koreaRecyclingCollection, err := calculateKoreaRecyclingCollection(typeAuto, carAge, engineVolume, srv)
@@ -237,6 +242,8 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	koreaLogisticPriceRub := logisticKoreaPrice * exchangeRateWonToRub
 	result["koreaLogisticPriceRub"] = math.Ceil(koreaLogisticPriceRub)
 
+	result["koreaLogisticsDestination"] = math.Ceil(logisticsDestination)
+
 	// Получаем комиссию
 	koreaCommission, err := internal.GetValueFromSheet(srv, "Корея", "C3")
 	if err != nil {
@@ -245,11 +252,11 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	result["koreaCommission"] = koreaCommission
 
 	// Получаем стоимость логистики по Москве
-	koreaLogisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Корея", "D3")
-	if err != nil {
-		return nil, err
-	}
-	result["koreaLogisticMoscowPrice"] = koreaLogisticMoscowPrice
+	// koreaLogisticMoscowPrice, err := internal.GetValueFromSheet(srv, "Корея", "D3")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// result["koreaLogisticMoscowPrice"] = koreaLogisticMoscowPrice
 
 	// Получаем стоимость оформления документов
 	koreaDocumentsPrice, err := internal.GetValueFromSheet(srv, "Корея", "E3")
@@ -259,7 +266,7 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	result["koreaDocumentsPrice"] = koreaDocumentsPrice
 
 	// Рассчитываем итоговую стоимость
-	koreaResultPrice := math.Ceil(koreaCustomsСostPrice) + math.Ceil(koreaRecyclingCollection) + math.Ceil(koreaPriceAutoRub) + math.Ceil(koreaLogisticPriceRub) + koreaCommission + koreaLogisticMoscowPrice + koreaDocumentsPrice
+	koreaResultPrice := math.Ceil(koreaCustomsСostPrice) + math.Ceil(koreaRecyclingCollection) + math.Ceil(koreaPriceAutoRub) + math.Ceil(koreaLogisticPriceRub) + koreaCommission + math.Ceil(logisticsDestination) + koreaDocumentsPrice
 	result["koreaResultPrice"] = koreaResultPrice
 
 	// Возвращаем map с результатами

@@ -85,24 +85,25 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 
 	// Мапа с русскими названиями для каждого ключа
 	fieldNames := map[string]string{
-		"koreaCustomsСostPrice":         "Таможенная стоимость (Корея)",
-		"germanyCustomsСostPrice":       "Таможенная стоимость (Германия)",
-		"exchangeRateWonToRub":          "Курс вон к рублю за 1000 единиц",
+		"koreaCustomsСostPrice":         "Таможенная стоимость",
+		"germanyCustomsСostPrice":       "Таможенная стоимость",
+		"exchangeRateWonToRub":          "Курс вон к рублю (1000 ₩)",
 		"exchangeRateEuroToRub":         "Курс евро к рублю",
-		"koreaRecyclingCollection":      "Утильсбор (Корея)",
-		"germanyRecyclingCollection":    "Утильсбор (Германия)",
-		"koreaPriceAutoRub":             "Стоимость авто в рублях (Корея)",
-		"germanyPriceAutoRub":           "Стоимость авто в рублях (Германия)",
-		"koreaLogisticPriceRub":         "Логистика из Кореи (рубли)",
-		"germanyLogisticMoscowPriceRub": "Логистика до Москвы (рубли)",
-		"koreaCommission":               "Комиссия (Корея)",
-		"germanyCommission":             "Комиссия (Германия)",
-		"koreaLogisticMoscowPrice":      "Логистика до Москвы (Корея)",
-		"koreaDocumentsPrice":           "Оформление документов (Корея)",
-		"germanyDocumentsPrice":         "Оформление документов (Германия)",
-		"koreaResultPrice":              "Итоговая стоимость (Корея)",
-		"germanyResultPrice":            "Итоговая стоимость (Германия)",
-		"germanyPricePercentRub":        "Услуги брокера (Германии)",
+		"koreaRecyclingCollection":      "Утильсбор",
+		"germanyRecyclingCollection":    "Утильсбор",
+		"koreaPriceAutoRub":             "Стоимость авто в Корее",
+		"germanyPriceAutoRub":           "Стоимость авто в Германии",
+		"koreaLogisticPriceRub":         "Логистика до Владивостока",
+		"germanyLogisticMoscowPriceRub": "Логистика до СПБ",
+		"koreaLogisticsDestination":     "Логистика до места назначенния",
+		"germanyLogisticsDestination":   "Логистика до места назначенния",
+		"koreaCommission":               "Комиссия",
+		"germanyCommission":             "Комиссия",
+		"koreaDocumentsPrice":           "Оформление документов",
+		"germanyDocumentsPrice":         "Оформление документов",
+		"koreaResultPrice":              "Итоговая стоимость",
+		"germanyResultPrice":            "Итоговая стоимость",
+		"germanyPricePercentRub":        "Услуги брокера в Германии",
 	}
 
 	// Срез с ключами в нужном порядке
@@ -118,9 +119,10 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 		"germanyRecyclingCollection",
 		"koreaLogisticPriceRub",
 		"germanyLogisticMoscowPriceRub",
+		"koreaLogisticsDestination",
+		"germanyLogisticsDestination",
 		"koreaCommission",
 		"germanyCommission",
-		"koreaLogisticMoscowPrice",
 		"koreaDocumentsPrice",
 		"germanyDocumentsPrice",
 		"exchangeRateWonToRub",
@@ -136,7 +138,7 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	log.Printf("Расчет стоимости №%d", calculationCount)
 
 	// Добавляем разделитель
-	messageText += "\n"
+	messageText += "\n\n"
 
 	// Формируем текстовое сообщение из response
 	for _, key := range orderedKeys {
@@ -145,15 +147,17 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 				// Проверяем, является ли ключ курсом валюты
 				if key == "exchangeRateWonToRub" || key == "exchangeRateEuroToRub" {
 					messageText += "\n"
-					// Для курсов валют выводим полное значение без округления
-					messageText += fmt.Sprintf("%s: %f\n", russianName, value)
+					// Для курсов валют
+					messageText += fmt.Sprintf("%s:\n%.2f ₽\n", russianName, value)
+				} else if key == "koreaResultPrice" || key == "germanyResultPrice" {
+					messageText += fmt.Sprintf("%s:\n%.0f ₽\n\nВ итоговую стоимость входит:\n", russianName, value)
 				} else {
-					// Для остальных значений используем округление до 2 знаков
-					messageText += fmt.Sprintf("%s: %.2f\n", russianName, value)
+					// Для остальных значений
+					messageText += fmt.Sprintf("%s:\n%.0f ₽\n", russianName, value)
 				}
 			} else {
 				// Если ключ не найден в мапе, используем оригинальный ключ
-				messageText += fmt.Sprintf("%s: %.2f\n", key, value)
+				messageText += fmt.Sprintf("%s:\n%.0f ₽\n", key, value)
 			}
 		}
 	}
@@ -164,21 +168,21 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	// Добавляем информацию о стране, типе авто и годе выпуска
 	messageText += fmt.Sprintf("Страна: %s\n", country)
 	messageText += fmt.Sprintf("Тип авто: %s\n", typeAuto)
-	messageText += fmt.Sprintf("Год выпуска: %d\n", yearOfManufacture)
+	messageText += fmt.Sprintf("Год выпуска: %d г.\n", yearOfManufacture)
 
 	// Добавляем информацию об объеме двигателя, если он есть
 	if engineVolume > 0 {
-		messageText += fmt.Sprintf("Объем двигателя: %.2f см³\n", engineVolume)
+		messageText += fmt.Sprintf("Объем двигателя: %.0f см³\n", engineVolume)
 	}
 
 	// Добавляем информацию о цене в вонах (только для Кореи)
 	if country == "Корея" && priceWon > 0 {
-		messageText += fmt.Sprintf("Цена в вонах: %.2f\n", priceWon)
+		messageText += fmt.Sprintf("Цена в вонах: %.0f ₩\n", priceWon)
 	}
 
 	// Добавляем информацию о цене в евро (только для Германии)
 	if country == "Германия" && priceEuro > 0 {
-		messageText += fmt.Sprintf("Цена в евро: %.2f\n", priceEuro)
+		messageText += fmt.Sprintf("Цена в евро: %.0f €\n", priceEuro)
 	}
 
 	// Отправляем сообщение
