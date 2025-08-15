@@ -12,8 +12,7 @@ import (
 )
 
 func RoundUpTo10000(value float64) float64 {
-	step := 10000.0
-	return math.Ceil(value/step) * step
+	return math.Ceil(value/100) * 100
 }
 
 // Функция для расчета утильсбора
@@ -216,7 +215,7 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 		log.Printf("Ошибка при расчете стоимости таможенной ставки корейского авто: %v\n", err)
 		return nil, err
 	}
-	result["koreaCustomsСostPrice"] = math.Ceil(koreaCustomsСostPrice)
+	result["koreaCustomsСostPrice"] = RoundUpTo10000(koreaCustomsСostPrice)
 
 	result["exchangeRateWonToRub"] = math.Round(exchangeRateWonToRub*1000*100) / 100
 	result["exchangeRateEuroToRub"] = math.Round(exchangeRateEuroToRub*100) / 100
@@ -227,7 +226,7 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 		log.Printf("Ошибка при расчете стоимости утильсбора корейского авто: %v\n", err)
 		return nil, err
 	}
-	result["koreaRecyclingCollection"] = math.Ceil(koreaRecyclingCollection)
+	result["koreaRecyclingCollection"] = RoundUpTo10000(koreaRecyclingCollection)
 
 	// Получаем стоимость логистики из Кореи
 	logisticKoreaPrice, err := internal.GetValueFromSheet(srv, "Корея", "B2")
@@ -236,11 +235,11 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	}
 
 	koreaPriceAutoRub := priceWon * exchangeRateWonToRub
-	result["koreaPriceAutoRub"] = math.Ceil(koreaPriceAutoRub)
+	result["koreaPriceAutoRub"] = RoundUpTo10000(koreaPriceAutoRub)
 
 	// Рассчитываем стоимость логистики из Кореи в рублях
 	koreaLogisticPriceRub := logisticKoreaPrice * exchangeRateWonToRub
-	result["koreaLogisticPriceRub"] = math.Ceil(koreaLogisticPriceRub)
+	result["koreaLogisticPriceRub"] = RoundUpTo10000(koreaLogisticPriceRub)
 
 	result["koreaLogisticsDestination"] = math.Ceil(logisticsDestination)
 
@@ -266,7 +265,7 @@ func CalculateKoreaResult(typeAuto string, priceWon float64, yearOfManufacture i
 	result["koreaDocumentsPrice"] = koreaDocumentsPrice
 
 	// Рассчитываем итоговую стоимость
-	koreaResultPrice := math.Ceil(koreaCustomsСostPrice) + math.Ceil(koreaRecyclingCollection) + math.Ceil(koreaPriceAutoRub) + math.Ceil(koreaLogisticPriceRub) + koreaCommission + math.Ceil(logisticsDestination) + koreaDocumentsPrice
+	koreaResultPrice := RoundUpTo10000(koreaCustomsСostPrice) + RoundUpTo10000(koreaRecyclingCollection) + RoundUpTo10000(koreaPriceAutoRub) + RoundUpTo10000(koreaLogisticPriceRub) + koreaCommission + math.Ceil(logisticsDestination) + koreaDocumentsPrice
 	result["koreaResultPrice"] = koreaResultPrice
 
 	// Возвращаем map с результатами

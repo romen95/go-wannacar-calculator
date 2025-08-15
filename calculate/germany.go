@@ -198,7 +198,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 		log.Printf("Ошибка при расчете стоимости таможенной ставки немецкого авто: %v\n", err)
 		return nil, err
 	}
-	result["germanyCustomsСostPrice"] = math.Ceil(germanyCustomsСostPrice)
+	result["germanyCustomsСostPrice"] = RoundUpTo10000(germanyCustomsСostPrice)
 
 	result["exchangeRateEuroToRub"] = math.Round(exchangeRateEuroToRub*100) / 100
 
@@ -208,7 +208,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 		log.Printf("Ошибка при расчете стоимости утильсбора немецкого авто: %v\n", err)
 		return nil, err
 	}
-	result["germanyRecyclingCollection"] = math.Ceil(germanyRecyclingCollection)
+	result["germanyRecyclingCollection"] = RoundUpTo10000(germanyRecyclingCollection)
 
 	// Получаем процент наценки
 	percent, err := internal.GetValueFromSheet(srv, "Германия", "F2")
@@ -217,10 +217,10 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 	}
 
 	germanyPricePercentRub := priceEuro * (percent / 100) * exchangeRateEuroToRub
-	result["germanyPricePercentRub"] = math.Ceil(germanyPricePercentRub)
+	result["germanyPricePercentRub"] = RoundUpTo10000(germanyPricePercentRub)
 
 	germanyPriceAutoRub := priceEuro * exchangeRateEuroToRub
-	result["germanyPriceAutoRub"] = math.Ceil(germanyPriceAutoRub)
+	result["germanyPriceAutoRub"] = RoundUpTo10000(germanyPriceAutoRub)
 
 	// Получаем комиссию
 	germanyCommission, err := internal.GetValueFromSheet(srv, "Германия", "C3")
@@ -236,7 +236,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 	}
 
 	germanyLogisticMoscowPriceRub := germanyLogisticMoscowPrice * exchangeRateEuroToRub
-	result["germanyLogisticMoscowPriceRub"] = math.Ceil(germanyLogisticMoscowPriceRub)
+	result["germanyLogisticMoscowPriceRub"] = RoundUpTo10000(germanyLogisticMoscowPriceRub)
 
 	result["germanyLogisticsDestination"] = math.Ceil(logisticsDestination)
 
@@ -248,7 +248,7 @@ func CalculateGermanyResult(typeAuto string, priceEuro float64, yearOfManufactur
 	result["germanyDocumentsPrice"] = germanyDocumentsPrice
 
 	// Рассчитываем итоговую стоимость
-	germanyResultPrice := math.Ceil(germanyCustomsСostPrice) + math.Ceil(germanyRecyclingCollection) + math.Ceil(germanyPricePercentRub) + math.Ceil(germanyPriceAutoRub) + germanyCommission + math.Ceil(germanyLogisticMoscowPriceRub) + math.Ceil(logisticsDestination) + germanyDocumentsPrice
+	germanyResultPrice := RoundUpTo10000(germanyCustomsСostPrice) + RoundUpTo10000(germanyRecyclingCollection) + RoundUpTo10000(germanyPricePercentRub) + RoundUpTo10000(germanyPriceAutoRub) + germanyCommission + RoundUpTo10000(germanyLogisticMoscowPriceRub) + math.Ceil(logisticsDestination) + germanyDocumentsPrice
 	result["germanyResultPrice"] = germanyResultPrice
 
 	// Возвращаем map с результатами
