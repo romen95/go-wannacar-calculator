@@ -157,6 +157,8 @@
                 <option disabled value="">Выберите страну импорта</option>
                 <option value="Корея">Корея</option>
                 <option value="Германия">Германия</option>
+                <option value="Китай">Китай</option>
+                <option value="Грузия">Грузия</option>
             </select>
 
             <select v-model="selectedTypeAuto" class="form-control" @change="updateEngineFormFields">
@@ -167,9 +169,11 @@
 
             <input v-if="selectedCountry === 'Корея'" v-model="priceWon" type="number" class="form-control" placeholder="Стоимость авто в вонах" inputmode="numeric">
             <input v-if="selectedCountry === 'Германия'" v-model="priceEuro" type="number" class="form-control" placeholder="Стоимость авто в евро" inputmode="numeric">
+            <input v-if="selectedCountry === 'Китай'" v-model="priceYuan" type="number" class="form-control" placeholder="Стоимость авто в юанях" inputmode="numeric">
+            <input v-if="selectedCountry === 'Грузия'" v-model="priceDollar" type="number" class="form-control" placeholder="Стоимость авто в долларах" inputmode="numeric">
             <input v-model="yearOfManufacture" type="number" class="form-control" placeholder="Год выпуска" inputmode="numeric">
             <input v-if="selectedTypeAuto === 'Бензиновый/дизельный двигатель'" v-model="engineVolume" type="number" class="form-control" placeholder="Объем двигателя (см³)" inputmode="numeric">
-            <input v-if="selectedCountry === 'Корея' || selectedCountry === 'Германия'"
+            <input v-if="selectedCountry === 'Корея' || selectedCountry === 'Германия' || selectedCountry === 'Китай' || selectedCountry === 'Грузия'"
                    v-model="logisticsDestination"
                    type="number"
                    class="form-control"
@@ -191,33 +195,67 @@
 
         <!-- Результат -->
         <div v-if="showResult" class="result-container">
-            <div v-if="selectedCountry === 'Корея'" class="result">Итоговая стоимость:<br>[[ koreaResult ]] ₽</div>
-            <div v-if="selectedCountry === 'Германия'" class="result">Итоговая стоимость:<br>[[ germanyResult ]] ₽</div>
+            <div v-if="selectedCountry === 'Корея'" class="result">Итоговая стоимость:<br>[[ details.koreaResultPrice ]] ₽</div>
+            <div v-if="selectedCountry === 'Германия'" class="result">Итоговая стоимость:<br>[[ details.germanyResultPrice ]] ₽</div>
+            <div v-if="selectedCountry === 'Китай'" class="result">Итоговая стоимость:<br>[[ details.chinaResultPrice ]] ₽</div>
+            <div v-if="selectedCountry === 'Грузия'" class="result">Итоговая стоимость:<br>[[ details.georgiaResultPrice ]] ₽</div>
 
             <!-- Детали расчета Корея -->
-            <div v-if="selectedCountry === 'Корея' && details" class="details">
-                <div>В итоговую стоимость входит:</div>
-                <div>Стоимость авто в Корее: [[ details.koreaPriceAutoRub ]] ₽</div>
-                <div>Таможенная ставка: [[ details.koreaCustomsСostPrice ]] ₽</div>
-                <div>Утильсбор: [[ details.koreaRecyclingCollection ]] ₽</div>
-                <div>Логистика до Владивостока: [[ details.koreaLogisticPriceRub ]] ₽</div>
-                <div>Комиссия: [[ details.koreaCommission ]] ₽</div>
-                <div>Логистика до места назначения: [[ logisticsDestinationDisplay ]] ₽</div>
-                <div>Оформление документов: [[ details.koreaDocumentsPrice ]] ₽</div>
+        <div v-if="selectedCountry === 'Корея' && details" class="details">
+            <div>В итоговую стоимость входит:</div>
+            <div>Стоимость авто в Корее: [[ details.koreaPriceAutoRub ]] ₽</div>
+            <div>Таможенная ставка: [[ details.koreaCustomsСostPrice ]] ₽</div>
+            <div>Утильсбор: [[ details.koreaRecyclingCollection ]] ₽</div>
+            <div>Логистика до Владивостока: [[ details.koreaLogisticPriceRub ]] ₽</div>
+            <div>Комиссия: [[ details.koreaCommission ]] ₽</div>
+            <div v-if="details.koreaLogisticsDestination && details.koreaLogisticsDestination !== 0">
+                Логистика до места назначения: [[ details.koreaLogisticsDestination ]] ₽
             </div>
+            <div>Оформление документов: [[ details.koreaDocumentsPrice ]] ₽</div>
+        </div>
 
-            <!-- Детали расчета Германия -->
-            <div v-if="selectedCountry === 'Германия' && details" class="details">
-                <div>В итоговую стоимость входит:</div>
-                <div>Стоимость авто в Германии: [[ details.germanyPriceAutoRub ]] ₽</div>
-                <div>Услуги брокера в Германии: [[ details.germanyPricePercentRub ]] ₽</div>
-                <div>Таможенная ставка: [[ details.germanyCustomsСostPrice ]] ₽</div>
-                <div>Утильсбор: [[ details.germanyRecyclingCollection ]] ₽</div>
-                <div>Комиссия: [[ details.germanyCommission ]] ₽</div>
-                <div>Логистика до СПБ: [[ details.germanyLogisticMoscowPriceRub ]] ₽</div>
-                <div>Логистика до места назначения: [[ logisticsDestinationDisplay ]] ₽</div>
-                <div>Оформление документов: [[ details.germanyDocumentsPrice ]] ₽</div>
+        <!-- Детали расчета Германия -->
+        <div v-if="selectedCountry === 'Германия' && details" class="details">
+            <div>В итоговую стоимость входит:</div>
+            <div>Стоимость авто в Германии: [[ details.germanyPriceAutoRub ]] ₽</div>
+            <div>Услуги брокера в Германии: [[ details.germanyPricePercentRub ]] ₽</div>
+            <div>Таможенная ставка: [[ details.germanyCustomsСostPrice ]] ₽</div>
+            <div>Утильсбор: [[ details.germanyRecyclingCollection ]] ₽</div>
+            <div>Комиссия: [[ details.germanyCommission ]] ₽</div>
+            <div>Логистика до СПБ: [[ details.germanyLogisticMoscowPriceRub ]] ₽</div>
+            <div v-if="details.germanyLogisticsDestination && details.germanyLogisticsDestination !== 0">
+                Логистика до места назначения: [[ details.germanyLogisticsDestination ]] ₽
             </div>
+            <div>Оформление документов: [[ details.germanyDocumentsPrice ]] ₽</div>
+        </div>
+
+        <!-- Детали расчета Китай -->
+        <div v-if="selectedCountry === 'Китай' && details" class="details">
+            <div>В итоговую стоимость входит:</div>
+            <div>Стоимость авто в Китае: [[ details.chinaPriceAutoRub ]] ₽</div>
+            <div>Таможенная ставка: [[ details.chinaCustomsСostPrice ]] ₽</div>
+            <div>Утильсбор: [[ details.chinaRecyclingCollection ]] ₽</div>
+            <div>Логистика до транзитной зоны: [[ details.chinaLogisticPriceRub ]] ₽</div>
+            <div>Комиссия: [[ details.chinaCommission ]] ₽</div>
+            <div v-if="details.chinaLogisticsDestination && details.chinaLogisticsDestination !== 0">
+                Логистика до места назначения: [[ details.chinaLogisticsDestination ]] ₽
+            </div>
+            <div>Оформление документов: [[ details.chinaDocumentsPrice ]] ₽</div>
+        </div>
+
+        <!-- Детали расчета Грузия -->
+        <div v-if="selectedCountry === 'Грузия' && details" class="details">
+            <div>В итоговую стоимость входит:</div>
+            <div>Стоимость авто в Грузии: [[ details.georgiaPriceAutoRub ]] ₽</div>
+            <div>Таможенная ставка: [[ details.georgiaCustomsСostPrice ]] ₽</div>
+            <div>Утильсбор: [[ details.georgiaRecyclingCollection ]] ₽</div>
+            <div>Логистика до Владикавказа: [[ details.georgiaLogisticPriceRub ]] ₽</div>
+            <div>Комиссия: [[ details.georgiaCommission ]] ₽</div>
+            <div v-if="details.georgiaLogisticsDestination && details.georgiaLogisticsDestination !== 0">
+                Логистика до места назначения: [[ details.georgiaLogisticsDestination ]] ₽
+            </div>
+            <div>Оформление документов: [[ details.georgiaDocumentsPrice ]] ₽</div>
+        </div>
 
             <!-- Курсы валют -->
             <div v-if="details" class="exchange-rates">
@@ -227,7 +265,11 @@
                 <div v-if="selectedTypeAuto === 'Бензиновый/дизельный двигатель'">Объем двигателя: [[ engineVolume ]] см³</div>
                 <div v-if="selectedCountry === 'Корея'">Стоимость в вонах: [[ priceWon ]] ₩</div>
                 <div v-if="selectedCountry === 'Германия'">Стоимость в евро: [[ priceEuro ]] €</div>
+                <div v-if="selectedCountry === 'Китай'">Стоимость в юанях: [[ priceYuan ]] ¥</div>
+                <div v-if="selectedCountry === 'Грузия'">Стоимость в долларах: [[ priceDollar ]] $</div>
                 <div v-if="selectedCountry === 'Корея'">Курс вон к рублю (1000 ₩): [[ details.exchangeRateWonToRub ]] ₽</div>
+                <div v-if="selectedCountry === 'Китай'">Курс юаня к рублю: [[ details.exchangeRateYuanToRub ]] ₽</div>
+                <div v-if="selectedCountry === 'Грузия'">Курс доллара к рублю: [[ details.exchangeRateDollarToRub ]] ₽</div>
                 <div>Курс евро к рублю: [[ details.exchangeRateEuroToRub ]] ₽</div>
             </div>
 
@@ -246,14 +288,16 @@
                     selectedTypeAuto: '',
                     priceWon: '',
                     priceEuro: '',
+                    priceYuan: '',
+                    priceDollar: '',
                     yearOfManufacture: '',
                     engineVolume: '',
                     logisticsDestination: '',
-                    result: null,
                     details: null,
                     isLoading: false,
                     showForm: true,
                     showResult: false,
+                    errorMessage: "",
                     chatID: null
                 };
             },
@@ -272,23 +316,25 @@
                 updateAllFormFields() {
                     this.priceWon = '';
                     this.priceEuro = '';
+                    this.priceYuan = '';
+                    this.priceDollar = '';
                     this.yearOfManufacture = '';
                     this.engineVolume = '';
                     this.logisticsDestination = '';
-                    this.result = null;
                     this.details = null;
+                    this.errorMessage = "";
                 },
                 updateValuteFormFields() {
                     this.priceWon = '';
                     this.priceEuro = '';
+                    this.priceYuan = '';
+                    this.priceDollar = '';
                 },
                 updateEngineFormFields() {
                     this.engineVolume = '';
                 },
                 async calculatePrice() {
-                    // Снимаем фокус со всех инпутов при расчете
                     if (document.activeElement) document.activeElement.blur();
-
                     if (!this.selectedCountry || !this.selectedTypeAuto || !this.yearOfManufacture) {
                         alert("Заполните все поля!");
                         return;
@@ -301,6 +347,14 @@
                         alert("Заполните стоимость авто в евро!");
                         return;
                     }
+                    if (this.selectedCountry === 'Китай' && !this.priceYuan) {
+                        alert("Заполните стоимость авто в юанях!");
+                        return;
+                    }
+                    if (this.selectedCountry === 'Грузия' && !this.priceDollar) {
+                        alert("Заполните стоимость авто в долларах!");
+                        return;
+                    }
                     if (this.selectedTypeAuto === 'Бензиновый/дизельный двигатель' && !this.engineVolume) {
                         alert("Заполните объем двигателя в см³!");
                         return;
@@ -308,17 +362,20 @@
 
                     this.showForm = false;
                     this.isLoading = true;
+                    this.showResult = false;
+                    this.errorMessage = "";
 
                     try {
                         this.chatID = Telegram.WebApp.initDataUnsafe.user?.id;
-
-                        const response = await fetch("https://user30502800-3atab2da.tunnel.vk-apps.com/calculate", {
+                        const response = await fetch("https://wannacar.duckdns.org/calculate", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 chatID: this.chatID,
                                 priceWon: parseFloat(this.priceWon),
                                 priceEuro: parseFloat(this.priceEuro),
+                                priceYuan: parseFloat(this.priceYuan),
+                                priceDollar: parseFloat(this.priceDollar),
                                 engineVolume: parseFloat(this.engineVolume),
                                 yearOfManufacture: parseFloat(this.yearOfManufacture),
                                 country: this.selectedCountry,
@@ -330,16 +387,42 @@
                                         : 0
                             })
                         });
-                        const data = await response.json();
 
-                        this.koreaResult = data.koreaResultPrice;
-                        this.germanyResult = data.germanyResultPrice;
+                        if (!response.ok) {
+                            throw new Error("Ошибка соединения с сервером: " + response.statusText);
+                        }
+                        const data = await response.json();
+                        console.log("Ответ сервера:", data);
+
+                        // --- Ключевая проверка только по выбранной стране ---
+                        let resultKey = "";
+                        switch (this.selectedCountry) {
+                            case "Корея":
+                                resultKey = "koreaResultPrice";
+                                break;
+                            case "Германия":
+                                resultKey = "germanyResultPrice";
+                                break;
+                            case "Китай":
+                                resultKey = "chinaResultPrice";
+                                break;
+                            case "Грузия":
+                                resultKey = "georgiaResultPrice";
+                                break;
+                        }
+                        if (!data[resultKey] && data[resultKey] !== 0) {
+                            throw new Error("Нет данных для отображения");
+                        }
+
                         this.details = data;
+                        this.showResult = true;
                     } catch (error) {
-                        console.error("Ошибка запроса", error);
+                        this.errorMessage = error.message;
+                        this.showForm = true;
+                        this.showResult = false;
+                        this.details = null;
                     } finally {
                         this.isLoading = false;
-                        this.showResult = true;
                     }
                 },
                 goBack() {
@@ -350,11 +433,9 @@
             },
             delimiters: ['[[', ']]'],
             mounted() {
-                // Telegram WebApp init
                 const tg = window.Telegram.WebApp;
                 tg.expand();
                 tg.ready();
-                // Удалено авто-scroll и blur на инпуты, чтобы не было багов с курсором!
             }
         }).mount('#app');
     </script>

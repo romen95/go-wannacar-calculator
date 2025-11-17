@@ -38,6 +38,8 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 			TypeAuto             string  `json:"typeAuto"`
 			PriceWon             float64 `json:"priceWon"`
 			PriceEuro            float64 `json:"priceEuro"`
+			PriceYuan            float64 `json:"priceYuan"`
+			PriceDollar          float64 `json:"priceDollar"`
 			YearOfManufacture    int     `json:"yearOfManufacture"`
 			EngineVolume         float64 `json:"engineVolume"`
 			LogisticsDestination float64 `json:"logisticsDestination"`
@@ -76,8 +78,24 @@ func calculateHandler(h *bot.BotHandler) http.HandlerFunc {
 				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
 				return
 			}
+		case "Китай":
+			response, err = calculate.CalculateChinaResult(requestData.TypeAuto, requestData.PriceYuan, requestData.YearOfManufacture, requestData.EngineVolume, requestData.LogisticsDestination, srv)
+			if err != nil {
+				log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
+				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
+				return
+			}
+		case "Грузия":
+			response, err = calculate.CalculateGeorgiaResult(requestData.TypeAuto, requestData.PriceDollar, requestData.YearOfManufacture, requestData.EngineVolume, requestData.LogisticsDestination, srv)
+			if err != nil {
+				log.Printf("Ошибка при передаче данных на фронтенд: %v\n", err)
+				http.Error(w, fmt.Sprintf("Не удалось передать данные: %v", err), http.StatusInternalServerError)
+				return
+			}
 		}
-		go h.SendResponse(requestData.ChatID, response, requestData.Country, requestData.TypeAuto, requestData.PriceWon, requestData.PriceEuro, requestData.EngineVolume, requestData.YearOfManufacture)
+		go h.SendResponse(requestData.ChatID, response, requestData.Country, requestData.TypeAuto, requestData.PriceWon, requestData.PriceEuro, requestData.PriceYuan, requestData.PriceDollar, requestData.EngineVolume, requestData.YearOfManufacture)
+		jsonResp, _ := json.Marshal(response)
+		log.Printf("JSON ответ сервера: %s\n", string(jsonResp))
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}

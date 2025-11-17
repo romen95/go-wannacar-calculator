@@ -61,7 +61,7 @@ func (h *BotHandler) HandleStart(message *tgbotapi.Message) {
 	}
 }
 
-func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, country, typeAuto string, priceWon, priceEuro, engineVolume float64, yearOfManufacture int) {
+func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, country, typeAuto string, priceWon, priceEuro, priceYuan, priceDollar, engineVolume float64, yearOfManufacture int) {
 	user := h.DB.GetUserByID(chatID)
 	if user == nil {
 		err := h.DB.CreateUser(chatID)
@@ -87,22 +87,40 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	fieldNames := map[string]string{
 		"koreaCustomsСostPrice":         "Таможенная стоимость",
 		"germanyCustomsСostPrice":       "Таможенная стоимость",
+		"chinaCustomsСostPrice":         "Таможенная стоимость",
+		"georgiaCustomsСostPrice":       "Таможенная стоимость",
 		"exchangeRateWonToRub":          "Курс вон к рублю (1000 ₩)",
 		"exchangeRateEuroToRub":         "Курс евро к рублю",
+		"exchangeRateYuanToRub":         "Курс юань к рублю",
+		"exchangeRateDollarToRub":       "Курс доллар к рублю",
 		"koreaRecyclingCollection":      "Утильсбор",
 		"germanyRecyclingCollection":    "Утильсбор",
+		"chinaRecyclingCollection":      "Утильсбор",
+		"georgiaRecyclingCollection":    "Утильсбор",
 		"koreaPriceAutoRub":             "Стоимость авто в Корее",
 		"germanyPriceAutoRub":           "Стоимость авто в Германии",
+		"chinaPriceAutoRub":             "Стоимость авто в Китае",
+		"georgiaPriceAutoRub":           "Стоимость авто в Грузии",
 		"koreaLogisticPriceRub":         "Логистика до Владивостока",
 		"germanyLogisticMoscowPriceRub": "Логистика до СПБ",
-		"koreaLogisticsDestination":     "Логистика до места назначенния",
-		"germanyLogisticsDestination":   "Логистика до места назначенния",
+		"chinaLogisticPriceRub":         "Логистика до транзитной зоны",
+		"georgiaLogisticPriceRub":       "Логистика до Владикавказа",
+		"koreaLogisticsDestination":     "Логистика до места назначения",
+		"germanyLogisticsDestination":   "Логистика до места назначения",
+		"chinaLogisticsDestination":     "Логистика до места назначения",
+		"georgiaLogisticsDestination":   "Логистика до места назначения",
 		"koreaCommission":               "Комиссия",
 		"germanyCommission":             "Комиссия",
+		"chinaCommission":               "Комиссия",
+		"georgiaCommission":             "Комиссия",
 		"koreaDocumentsPrice":           "Оформление документов",
 		"germanyDocumentsPrice":         "Оформление документов",
+		"chinaDocumentsPrice":           "Оформление документов",
+		"georgiaDocumentsPrice":         "Оформление документов",
 		"koreaResultPrice":              "Итоговая стоимость",
 		"germanyResultPrice":            "Итоговая стоимость",
+		"chinaResultPrice":              "Итоговая стоимость",
+		"georgiaResultPrice":            "Итоговая стоимость",
 		"germanyPricePercentRub":        "Услуги брокера в Германии",
 	}
 
@@ -110,23 +128,41 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	orderedKeys := []string{
 		"koreaResultPrice",
 		"germanyResultPrice",
+		"chinaResultPrice",
+		"georgiaResultPrice",
 		"koreaPriceAutoRub",
 		"germanyPriceAutoRub",
+		"chinaPriceAutoRub",
+		"georgiaPriceAutoRub",
 		"germanyPricePercentRub",
 		"koreaCustomsСostPrice",
 		"germanyCustomsСostPrice",
+		"chinaCustomsСostPrice",
+		"georgiaCustomsСostPrice",
 		"koreaRecyclingCollection",
 		"germanyRecyclingCollection",
+		"chinaRecyclingCollection",
+		"georgiaRecyclingCollection",
 		"koreaLogisticPriceRub",
 		"germanyLogisticMoscowPriceRub",
+		"chinaLogisticPriceRub",
+		"georgiaLogisticPriceRub",
 		"koreaLogisticsDestination",
 		"germanyLogisticsDestination",
+		"chinaLogisticsDestination",
+		"georgiaLogisticsDestination",
 		"koreaCommission",
 		"germanyCommission",
+		"chinaCommission",
+		"georgiaCommission",
 		"koreaDocumentsPrice",
 		"germanyDocumentsPrice",
+		"chinaDocumentsPrice",
+		"georgiaDocumentsPrice",
 		"exchangeRateWonToRub",
 		"exchangeRateEuroToRub",
+		"exchangeRateYuanToRub",
+		"exchangeRateDollarToRub",
 	}
 
 	// Формируем текстовое сообщение
@@ -143,13 +179,16 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	// Формируем текстовое сообщение из response
 	for _, key := range orderedKeys {
 		if value, exists := response[key]; exists {
+			if (key == "koreaLogisticsDestination" || key == "germanyLogisticsDestination" || key == "chinaLogisticsDestination" || key == "georgiaLogisticsDestination") && value == 0 {
+				continue
+			}
 			if russianName, ok := fieldNames[key]; ok {
 				// Проверяем, является ли ключ курсом валюты
-				if key == "exchangeRateWonToRub" || key == "exchangeRateEuroToRub" {
+				if key == "exchangeRateWonToRub" || key == "exchangeRateEuroToRub" || key == "exchangeRateYuanToRub" || key == "exchangeRateDollarToRub" {
 					messageText += "\n"
 					// Для курсов валют
 					messageText += fmt.Sprintf("%s:\n%.2f ₽\n", russianName, value)
-				} else if key == "koreaResultPrice" || key == "germanyResultPrice" {
+				} else if key == "koreaResultPrice" || key == "germanyResultPrice" || key == "chinaResultPrice" || key == "georgiaResultPrice" {
 					messageText += fmt.Sprintf("%s:\n%.0f ₽\n\nВ итоговую стоимость входит:\n", russianName, value)
 				} else {
 					// Для остальных значений
@@ -183,6 +222,14 @@ func (h *BotHandler) SendResponse(chatID int64, response map[string]float64, cou
 	// Добавляем информацию о цене в евро (только для Германии)
 	if country == "Германия" && priceEuro > 0 {
 		messageText += fmt.Sprintf("Цена в евро: %.0f €\n", priceEuro)
+	}
+
+	if country == "Китай" && priceYuan > 0 {
+		messageText += fmt.Sprintf("Цена в юанях: %.0f ¥\n", priceYuan)
+	}
+
+	if country == "Грузия" && priceDollar > 0 {
+		messageText += fmt.Sprintf("Цена в долларах: %.0f $\n", priceDollar)
 	}
 
 	// Отправляем сообщение
